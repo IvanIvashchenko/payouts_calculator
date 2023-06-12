@@ -1,0 +1,23 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV["PG_POOL_SIZE"] || ENV["RAILS_MAX_THREADS"] || 5 %>
+  username: <%= ENV['DB_USER'] %>
+  password: <%= ENV['DB_PASSWD'] %>
+  port: <%= ENV['DB_PORT'].presence || 5432 %>
+  host: <%= ENV['DB_HOST'] %>
+  database: <%= ENV['DB_NAME'] %>
+
+development:
+  <<: *default
+  database: payouts_calculator_development
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: payouts_calculator_test
+
+production:
+  <<: *default

@@ -4,10 +4,10 @@
 
 #### Dependencies and versions
 
-*nix based OS (as the cron tool is used)
 Ruby 3.1.2
 Rails 6.1
 Postgresql 14
+Redis
 
 #### Set up DB and libraries
 
@@ -42,11 +42,11 @@ To get the statistics by the years, run
 rake get_statistics
 ```
 
-To run the process of payouts creation automatically, we need to update the crontab file.
-This could be done with the next command:
+To run the process of payouts creation automatically, we need to run sidekiq process.
 ```shell
-whenever --update-crontab --set environment='development'
+bundle exec sidekiq
 ```
+Information about jobs stats and scheduling should be available on `http://server:port/sidekiq/recurring-jobs`
 
 Also, there are very small amount of specs added to the project.
 They could be started with:

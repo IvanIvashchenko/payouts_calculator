@@ -1,0 +1,5 @@
+:scheduler:
+  :schedule:
+    CreatePayoutsJob:
+      cron: '0 0 8 * * *'
+      description: 'Creates payouts for the previous day and create monthly fees if needed'

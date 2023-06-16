@@ -1,5 +1,5 @@
-class CreatePayoutsJob < ApplicationJob
-  queue_as :default
+class CreatePayoutsJob
+  include Sidekiq::Job
 
   def perform
     date = Date.today - 1.day

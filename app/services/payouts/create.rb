@@ -1,38 +1,38 @@
 module Payouts
-  # Creates payouts for all merchants with suitable orders
+  # Creates payouts for specified merchant with suitable orders
   # Example:
-  # Payouts::Create.new(date).call - will check and create daily payouts for the <date> and weekly payouts
+  # Payouts::Create.new(merchant_id, date).call - will check and create daily payouts for the <date> and weekly payouts
   #   for the week before <date>
   class Create < ApplicationService
-    attr_reader :date, :date_week_ago
+    attr_reader :date, :date_week_ago, :merchant_id
 
-    def initialize(date)
+    def initialize(merchant_id, date)
+      @merchant_id = merchant_id
       @date = date
       @date_week_ago = @date - 6.days
     end
 
     def call
-      merchant_ids = orders.pluck(:merchant_id).uniq
-      merchant_ids.each do |merchant_id|
-        merchant_orders = orders.select { _1.merchant_id == merchant_id }
-        total_fee = calculate_fee(merchant_orders)
-        ActiveRecord::Base.transaction do
-          payout = Payout.create!(
-            total_amount: merchant_orders.sum(&:amount),
-            total_fee:,
-            merchant_id:,
-            payout_date: date
-          )
-          Order.where(id: merchant_orders.pluck(:id)).update_all(payout_id: payout.id)
-        end
+      return if orders.empty?
+
+      total_fee = calculate_fee(orders)
+      ActiveRecord::Base.transaction do
+        payout = Payout.create!(
+          total_amount: orders.sum(&:amount),
+          total_fee:,
+          merchant_id:,
+          payout_date: date
+        )
+        Order.where(id: orders.pluck(:id)).update_all(payout_id: payout.id)
       end
     end
 
     private
 
     def orders
-      @orders ||= Order.joins(:merchant)
-                    .where('payout_id IS NULL')
+      @orders ||= Order.select(:id, :amount)
+                    .joins(:merchant)
+                    .where(payout_id: nil, merchant_id:)
                     .where(<<~SQL.squish, date:, date_week_ago:)
                          (payout_frequency = 'daily' AND created_by_merchant_at = :date) OR
                          (payout_frequency = 'weekly' AND

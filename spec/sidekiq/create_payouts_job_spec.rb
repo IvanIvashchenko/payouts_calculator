@@ -4,17 +4,24 @@ RSpec.describe CreatePayoutsJob, type: :job do
   describe '#perform' do
     subject(:perform) { CreatePayoutsJob.new.perform }
 
-    let(:payouts_service) { instance_double(Payouts::Create) }
-
-    before do
-      allow(Payouts::Create).to receive(:new).with(Date.today - 1.day).and_return(payouts_service)
-      allow(payouts_service).to receive(:call)
+    let!(:merchant) do
+      Merchant.create(
+        reference: SecureRandom.uuid,
+        email: 'merchant1@gmail.com',
+        live_on: '2023-01-01',
+        payout_frequency: 'daily',
+        min_monthly_fee: 15
+      )
     end
 
-    it 'starts payout creation process for the previous day' do
+    before do
+      allow(CreateMerchantPayoutsJob).to receive(:perform_async)
+    end
+
+    it 'starts payout creation process for the merchant' do
       perform
 
-      expect(payouts_service).to have_received(:call)
+      expect(CreateMerchantPayoutsJob).to have_received(:perform_async).once.with(merchant.id)
     end
 
     context 'when there is a first day of the month' do
@@ -22,7 +29,6 @@ RSpec.describe CreatePayoutsJob, type: :job do
 
       before do
         travel_to Time.zone.local(2023, 06, 01)
-        allow(Payouts::Create).to receive(:new).with(Date.parse('2023-05-31')).and_return(payouts_service)
         allow(MonthlyFees::Create).to receive(:new).and_return(monthly_fees_service)
         allow(monthly_fees_service).to receive(:call)
       end
@@ -43,7 +49,6 @@ RSpec.describe CreatePayoutsJob, type: :job do
 
       before do
         travel_to Time.zone.local(2023, 06, 05)
-        allow(Payouts::Create).to receive(:new).with(Date.parse('2023-06-04')).and_return(payouts_service)
         allow(MonthlyFees::Create).to receive(:new).and_return(monthly_fees_service)
         allow(monthly_fees_service).to receive(:call)
       end

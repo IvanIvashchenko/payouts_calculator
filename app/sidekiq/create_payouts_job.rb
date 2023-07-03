@@ -2,10 +2,9 @@ class CreatePayoutsJob
   include Sidekiq::Job
 
   def perform
-    date = Date.today - 1.day
-    puts "Started payout process for #{date}..."
-
-    Payouts::Create.new(date).call
+    Merchant.select(:id).find_each do |merchant|
+      CreateMerchantPayoutsJob.perform_async(merchant.id)
+    end
     MonthlyFees::Create.new.call if Date.today.day == 1
   end
 end

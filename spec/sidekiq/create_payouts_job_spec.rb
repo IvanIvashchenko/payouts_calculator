@@ -23,45 +23,5 @@ RSpec.describe CreatePayoutsJob, type: :job do
 
       expect(CreateMerchantPayoutsJob).to have_received(:perform_async).once.with(merchant.id)
     end
-
-    context 'when there is a first day of the month' do
-      let(:monthly_fees_service) { instance_double(MonthlyFees::Create) }
-
-      before do
-        travel_to Time.zone.local(2023, 06, 01)
-        allow(MonthlyFees::Create).to receive(:new).and_return(monthly_fees_service)
-        allow(monthly_fees_service).to receive(:call)
-      end
-
-      after do
-        travel_back
-      end
-
-      it 'starts monthly fees creation process for the previous month' do
-        perform
-
-        expect(monthly_fees_service).to have_received(:call)
-      end
-    end
-
-    context 'when there is any other day of the month except first' do
-      let(:monthly_fees_service) { instance_double(MonthlyFees::Create) }
-
-      before do
-        travel_to Time.zone.local(2023, 06, 05)
-        allow(MonthlyFees::Create).to receive(:new).and_return(monthly_fees_service)
-        allow(monthly_fees_service).to receive(:call)
-      end
-
-      after do
-        travel_back
-      end
-
-      it 'does not start monthly fees creation process for the previous month' do
-        perform
-
-        expect(monthly_fees_service).not_to have_received(:call)
-      end
-    end
   end
 end

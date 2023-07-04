@@ -23,7 +23,7 @@ RSpec.describe CreateMerchantPayoutsJob, type: :job do
     it 'starts payout creation process for the previous day' do
       perform
 
-      expect(payouts_service).to have_received(:call)
+      expect(payouts_service).to have_received(:call).once.with(no_args)
     end
   end
 end

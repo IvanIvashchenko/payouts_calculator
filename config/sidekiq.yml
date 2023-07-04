@@ -2,4 +2,7 @@
   :schedule:
     CreatePayoutsJob:
       cron: '0 0 8 * * *'
-      description: 'Creates payouts for the previous day and create monthly fees if needed'
+      description: 'Creates payouts for the previous day'
+    CreateMonthlyFeesJob:
+      cron: '0 0 4 1 * *'
+      description: 'Creates monthly fees for the previous month if needed'

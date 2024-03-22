@@ -53,3 +53,5 @@ They could be started with:
 ```shell
 bundle exec rspec spec
 ```
+
+New line for test
